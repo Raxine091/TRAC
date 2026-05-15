@@ -555,18 +555,18 @@
   let deletingId = null;
 
   // ── Helpers ────────────────────────────────────────────────────
-  window.addEventListener('DOMContentLoaded', async () => {
-    setupEventListeners();
-    await fetchFromCloudDatabase();
-  });
+//  window.addEventListener('DOMContentLoaded', async () => {
+  //  setupEventListeners();
+  //  await fetchFromCloudDatabase();
+ // });
 
-  async function fetchFromCloudDatabase() {
-    try {
-      let { data, error } = await supabase
-      .from('tickets')
-      .select('*');
+//  async function fetchFromCloudDatabase() {
+  //  try {
+  //    let { data, error } = await supabase
+  //    .from('tickets')
+   //   .select('*');
 
-      if (error) throw error;
+    //  if (error) throw error;
       
   function getInitials(n){ return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 
