@@ -542,10 +542,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
- // const SUPABASE_URL="https://slshpyoomukdmmxqzito.supabase.co";
-//const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsc2hweW9vbXVrZG1teHF6aXRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MzU3ODEsImV4cCI6MjA5NDQxMTc4MX0.axjrc2cKzwf9iVWL_strUQDII6K60UZ_y0joP5Rk_wo";
- // const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  
   let tickets   = [];   // starts empty
   let sortKey   = 'date', sortDir = -1;
   let currentPage = 1;
@@ -555,19 +551,6 @@
   let deletingId = null;
 
   // ── Helpers ────────────────────────────────────────────────────
-// window.addEventListener('DOMContentLoaded', async () => {
-  //  setupEventListeners();
-  //  await fetchFromCloudDatabase();
- // });
-
-//  async function fetchFromCloudDatabase() {
-  //  try {
-  //    let { data, error } = await supabase
-  //    .from('tickets')
-   //   .select('*');
-
-    //  if (error) throw error;
-      
   function getInitials(n){ return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 
   function statusClass(s){
