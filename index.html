@@ -366,6 +366,23 @@
     ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:10px; }
     ::-webkit-scrollbar-thumb:hover { background:var(--muted2); }
 
+     footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 2rem clamp(1.5rem, 5vw, 4rem);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+      footer span {
+        display: block;
+      }
+
   </style>
 </head>
 <body>
@@ -518,353 +535,226 @@
   </div>
 </div>
 
+<footer>
+    <span>&copy; 2026 Rax &#9876; Masix. All rights reserved.</span>
+    <span>Coded with care &amp; a lot of ☕</span>
+  </footer>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const SUPABASE_URL = "https://slshpyoomukdmmxqzito.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsc2hweW9vbXVrZG1teHF6aXRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MzU3ODEsImV4cCI6MjA5NDQxMTc4MX0.axjrc2cKzwf9iVWL_strUQDII6K60UZ_y0joP5Rk_wo";
-  
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  let tickets = [];
-  let currentEditId = null;
-  let currentDeleteId = null;
-  let sortField = 'date';
-  let sortAsc = false;
+  let tickets   = [];   // starts empty
+  let sortKey   = 'date', sortDir = -1;
   let currentPage = 1;
-  const rowsPerPage = 8;
+  const PER_PAGE  = 10;
+  let modalMode = 'new';
+  let editingId  = null;
+  let deletingId = null;
 
-  window.addEventListener('DOMContentLoaded', async () => {
-    setupEventListeners();
-    await fetchFromCloudDatabase();
-  });
+  // ── Helpers ────────────────────────────────────────────────────
+  function getInitials(n){ return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 
-  async function fetchFromCloudDatabase() {
-    try {
-      // Pull records from cloud
-      let { data, error } = await supabase
-        .from('tickets')
-        .select('*');
-        
-      if (error) throw error;
-      
-      // Map cloud names back to UI keys if necessary
-      tickets = data.map(t => ({
-        id: t.id,
-        date: t.date,
-        user: t.user,
-        dept: t.dept,
-        desc: t.description, // mapped to 'desc' used in UI
-        status: t.status,
-        solution: t.solution,
-        resolver: t.resolver,
-        resolvedDate: t.resolved_date
-      }));
-
-      // Sort by default field on pull
-      render();
-    } catch (err) {
-      console.error("Backend fetch error:", err.message);
-      alert("Could not load logs from backend database.");
-    }
+  function statusClass(s){
+    return 'badge badge-'+({Open:'open','In Progress':'progress',Resolved:'resolved',Closed:'closed',Pending:'pending'}[s]||'closed');
   }
 
-  function setupEventListeners() {
-    document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; render(); });
-    document.getElementById('filterStatus').addEventListener('change', () => { currentPage = 1; render(); });
-    document.getElementById('filterDate').addEventListener('change', () => { currentPage = 1; render(); });
+  function formatDate(d){ return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+
+  function nextId(){
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2,'0');
+    const mm = String(now.getMonth()+1).padStart(2,'0');
+    const prefix = dd+mm;
+    // find highest seq number among tickets with same DDMM prefix
+    const seq = tickets
+      .map(t => { const m = t.id.match(/^(\d{4})-(\d+)$/); return (m && m[1]===prefix) ? parseInt(m[2],10) : 0; })
+      .reduce((a,b)=>Math.max(a,b), 0);
+    return prefix+'-'+String(seq+1).padStart(3,'0');
   }
 
-  function updateStatChips() {
-    const open = tickets.filter(t => t.status === 'Open').length;
-    const prog = tickets.filter(t => t.status === 'In Progress').length;
-    document.getElementById('count-open').innerText = open;
-    document.getElementById('count-prog').innerText = prog;
-    document.getElementById('count-total').innerText = tickets.length;
-  }
-
-  function openNewModal() {
-    currentEditId = null;
-    document.getElementById('modalTitle').innerText = '// NEW_TICKET';
-    document.getElementById('f-user').value = '';
-    document.getElementById('f-status').value = 'Open';
-    document.getElementById('f-dept').value = '';
-    document.getElementById('f-desc').value = '';
-    document.getElementById('f-solution').value = '';
-    document.getElementById('f-resolver').value = '';
-    document.getElementById('modalOverlay').classList.add('open');
-  }
-
-  function openEditModal(id) {
-    currentEditId = id;
-    const ticket = tickets.find(t => t.id === id);
-    if (!ticket) return;
-
-    document.getElementById('modalTitle').innerText = `// EDIT_TICKET: ${id}`;
-    document.getElementById('f-user').value = ticket.user;
-    document.getElementById('f-status').value = ticket.status;
-    document.getElementById('f-dept').value = ticket.dept || '';
-    document.getElementById('f-desc').value = ticket.desc;
-    document.getElementById('f-solution').value = ticket.solution || '';
-    document.getElementById('f-resolver').value = ticket.resolver || '';
-    
-    document.getElementById('modalOverlay').classList.add('open');
-  }
-
-  function closeModal() {
-    document.getElementById('modalOverlay').classList.remove('open');
-    currentEditId = null;
-  }
-
-  function handleOverlayClick(e) {
-    if (e.target.id === 'modalOverlay') closeModal();
-  }
-
-  // 4. SAVE & AUTOSYNC DATA TO BACKEND
-  async function saveTicket() {
-    const user = document.getElementById('f-user').value.trim();
-    const status = document.getElementById('f-status').value;
-    const dept = document.getElementById('f-dept').value;
-    const desc = document.getElementById('f-desc').value.trim();
-    const solution = document.getElementById('f-solution').value.trim();
-    const resolver = document.getElementById('f-resolver').value.trim();
-
-    if (!user || !desc) {
-      alert("Please complete the 'Raised By' and 'Description' fields.");
-      return;
-    }
-
-    // Standard payload built for the cloud table layout
-    const cloudPayload = {
-      user: user,
-      dept: dept,
-      description: desc,
-      status: status,
-      solution: solution || null,
-      resolver: resolver || null,
-      resolved_date: solution ? new Date().toISOString() : null
-    };
-
-    try {
-      if (currentEditId) {
-        // UPDATE record in cloud database
-        const { error } = await supabase
-          .from('tickets')
-          .update(cloudPayload)
-          .eq('id', currentEditId);
-
-        if (error) throw error;
-      } else {
-        // CREATE new generated ID string and INSERT to cloud
-        const nextIdNum = tickets.length > 0 ? Math.max(...tickets.map(t => parseInt(t.id.split('-')[1]) || 1000)) + 1 : 1001;
-        cloudPayload.id = `TK-${nextIdNum}`;
-        cloudPayload.date = new Date().toISOString();
-
-        const { error } = await supabase
-          .from('tickets')
-          .insert([cloudPayload]);
-
-        if (error) throw error;
-      }
-
-      closeModal();
-      // Instantly refresh localized states with cloud data
-      await fetchFromCloudDatabase(); 
-    } catch (err) {
-      console.error("Backend write failed:", err.message);
-      alert("Database error: Changes could not save to cloud.");
-    }
-  }
-
-  function openConfirmDelete(id) {
-    currentDeleteId = id;
-    document.getElementById('confirmOverlay').classList.add('open');
-  }
-
-  function closeConfirmModal() {
-    document.getElementById('confirmOverlay').classList.remove('open');
-    currentDeleteId = null;
-  }
-
-  // 5. DELETE FROM BACKEND DATABASE
-  async function executeDelete() {
-    if (currentDeleteId) {
-      try {
-        const { error } = await supabase
-          .from('tickets')
-          .delete()
-          .eq('id', currentDeleteId);
-
-        if (error) throw error;
-
-        closeConfirmModal();
-        await fetchFromCloudDatabase();
-      } catch (err) {
-        console.error("Backend deletion failed:", err.message);
-        alert("Could not remove record from the cloud server.");
-      }
-    }
-  }
-
-  function sortTable(field) {
-    if (sortField === field) {
-      sortAsc = !sortAsc;
-    } else {
-      sortField = field;
-      sortAsc = true;
-    }
-    render();
-  }
-
-  function getFilteredAndSortedTickets() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const statusFilter = document.getElementById('filterStatus').value;
-    const dateFilter = document.getElementById('filterDate').value;
-    
-    let result = [...tickets];
-
-    if (search) {
-      result = result.filter(t => 
-        t.id.toLowerCase().includes(search) ||
-        t.user.toLowerCase().includes(search) ||
-        t.desc.toLowerCase().includes(search) ||
-        (t.dept && t.dept.toLowerCase().includes(search))
-      );
-    }
-
-    if (statusFilter) {
-      result = result.filter(t => t.status === statusFilter);
-    }
-
-    if (dateFilter) {
-      const days = parseInt(dateFilter);
-      const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
-      result = result.filter(t => new Date(t.date).getTime() >= cutoff);
-    }
-
-    result.sort((a, b) => {
-      let valA = a[sortField] || '';
-      let valB = b[sortField] || '';
-
-      if (sortField === 'date') {
-        return sortAsc ? new Date(valA) - new Date(valB) : new Date(valB) - new Date(valA);
-      }
-
-      valA = valA.toString().toLowerCase();
-      valB = valB.toString().toLowerCase();
-      
-      if (valA < valB) return sortAsc ? -1 : 1;
-      if (valA > valB) return sortAsc ? 1 : -1;
-      return 0;
+  // ── Filter / sort ──────────────────────────────────────────────
+  function getFiltered(){
+    const q    = document.getElementById('searchInput').value.toLowerCase();
+    const stat = document.getElementById('filterStatus').value;
+    const days = parseInt(document.getElementById('filterDate').value)||0;
+    const now  = Date.now();
+    return tickets.filter(t=>{
+      const mQ = !q    || [t.id,t.user,t.desc,t.solution||'',t.status,t.dept||'',t.resolver||''].some(f=>f.toLowerCase().includes(q));
+      const mS = !stat || t.status===stat;
+      const mD = !days || (now-new Date(t.date).getTime())<=days*864e5;
+      return mQ&&mS&&mD;
+    }).sort((a,b)=>{
+      const av=a[sortKey]||'', bv=b[sortKey]||'';
+      return av<bv?-sortDir:av>bv?sortDir:0;
     });
-
-    return result;
   }
 
-  function render() {
-    const sortedData = getFilteredAndSortedTickets();
+  // ── Render ─────────────────────────────────────────────────────
+  function render(){
+    const data  = getFiltered();
+    const total = data.length;
+    const pages = Math.max(1,Math.ceil(total/PER_PAGE));
+    currentPage = Math.min(currentPage,pages);
+    const slice = data.slice((currentPage-1)*PER_PAGE, currentPage*PER_PAGE);
+
     const tbody = document.getElementById('ticketBody');
-    const rowCountEl = document.getElementById('rowCount');
-    
-    document.querySelectorAll('th .sort-arrow').forEach(el => el.innerText = '↕');
-    document.querySelectorAll('th').forEach(el => el.classList.remove('sorted'));
-    const currentTh = document.getElementById(`arr-${sortField}`);
-    if (currentTh) {
-      currentTh.parentElement.classList.add('sorted');
-      currentTh.innerText = sortAsc ? '↑' : '↓';
-    }
 
-    if (sortedData.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="9">
-            <div class="empty-state">
-              <div class="empty-icon">📁</div>
-              <h3>No tickets detected</h3>
-              <p>Try clearing filters or generate a new logging index entry.</p>
-            </div>
-          </td>
-        </tr>
-      `;
-      rowCountEl.innerText = "Showing 0 of 0 logs";
-      document.getElementById('pagination').innerHTML = '';
-      updateStatChips();
-      return;
-    }
-
-    const totalItems = sortedData.length;
-    const totalPages = Math.ceil(totalItems / rowsPerPage);
-    if (currentPage > totalPages) currentPage = totalPages || 1;
-    
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
-    const paginatedData = sortedData.slice(startIndex, startIndex + rowsPerPage);
-
-    rowCountEl.innerText = `Showing ${startIndex + 1}-${endIndex} of ${totalItems} indexes`;
-
-    tbody.innerHTML = paginatedData.map(t => {
-      const dateFormatted = new Date(t.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: '2-digit'});
-      const statusClass = t.status.toLowerCase().replace(' ', '-');
-      const initials = t.user.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
-
-      let resolverCell = `<span class="resolver-none">—</span>`;
-      if (t.resolver) {
-        const resDate = t.resolvedDate ? new Date(t.resolvedDate).toLocaleDateString(undefined, {month: 'short', day: 'numeric'}) : '';
-        resolverCell = `
-          <div class="resolver-wrap">
-            <span class="resolver-name">${t.resolver}</span>
-            <span class="resolver-date">${resDate}</span>
-          </div>
-        `;
-      }
-
-      return `
-        <tr>
+    if(!tickets.length){
+      tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state">
+        <div class="empty-icon">🎫</div>
+        <h3>No tickets yet</h3>
+        <p>Click <strong>New Ticket</strong> to log the first support request.</p>
+      </div></td></tr>`;
+    } else if(!slice.length){
+      tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>No results</h3>
+        <p>No tickets match your current filters.</p>
+      </div></td></tr>`;
+    } else {
+      tbody.innerHTML = slice.map((t,i)=>`
+        <tr style="animation-delay:${i*0.03}s">
           <td class="td-id">${t.id}</td>
-          <td class="td-date">${dateFormatted}</td>
-          <td>
-            <div class="td-user">
-              <div class="avatar">${initials}</div>
-              <span>${t.user}</span>
-            </div>
+          <td class="td-date">${formatDate(t.date)}</td>
+          <td><div class="td-user"><div class="avatar">${getInitials(t.user)}</div>${t.user}</div></td>
+          <td>${t.dept ? `<span class="dept-tag">${t.dept}</span>` : `<span style="opacity:.28">—</span>`}</td>
+          <td class="td-desc" title="${t.desc}">${t.desc}</td>
+          <td><span class="${statusClass(t.status)}">${t.status}</span></td>
+          <td class="td-solution" title="${t.solution||'—'}">${t.solution||'<span style="opacity:.28">—</span>'}</td>
+          <td class="td-resolver">
+            ${t.resolver
+              ? `<div class="resolver-wrap">
+                   <div class="resolver-name">${t.resolver}</div>
+                   ${t.resolvedate ? `<div class="resolver-date">${formatDate(t.resolvedate)}</div>` : ''}
+                 </div>`
+              : `<span class="resolver-none">—</span>`}
           </td>
-          <td><span class="dept-tag">${t.dept || 'Unassigned'}</span></td>
-          <td><div class="td-desc" title="${t.desc}">${t.desc}</div></td>
-          <td><span class="badge badge-${statusClass}">${t.status}</span></td>
-          <td><div class="td-solution" title="${t.solution || ''}">${t.solution || 'Waiting fallback...'}</div></td>
-          <td class="td-resolver">${resolverCell}</td>
           <td class="td-actions">
             <div class="action-btns">
-              <button class="btn-edit" onclick="openEditModal('${t.id}')">Edit</button>
-              <button class="btn-delete" onclick="openConfirmDelete('${t.id}')">Delete</button>
+              <button class="btn-edit" onclick="openEditModal('${t.id}')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+                Edit
+              </button>
+              <button class="btn-delete" onclick="openDeleteConfirm('${t.id}')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                Delete
+              </button>
             </div>
           </td>
-        </tr>
-      `;
-    }).join('');
-
-    renderPaginationControls(totalPages);
-    updateStatChips();
-  }
-
-  function renderPaginationControls(totalPages) {
-    const container = document.getElementById('pagination');
-    if (totalPages <= 1) {
-      container.innerHTML = '';
-      return;
+        </tr>`).join('');
     }
 
-    let html = `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">←</button>`;
-    for (let i = 1; i <= totalPages; i++) {
-      html += `<button class="page-btn ${currentPage === i ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
-    }
-    html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">→</button>`;
-    container.innerHTML = html;
+    document.getElementById('rowCount').textContent = tickets.length
+      ? (total ? `Showing ${slice.length} of ${total} ticket${total!==1?'s':''}` : '0 tickets match filters')
+      : 'No tickets yet';
+
+    renderPagination(pages,total);
+
+    document.getElementById('count-open').textContent  = tickets.filter(t=>t.status==='Open').length;
+    document.getElementById('count-prog').textContent  = tickets.filter(t=>t.status==='In Progress').length;
+    document.getElementById('count-total').textContent = tickets.length;
+
+    ['id','date','user','dept','status'].forEach(k=>{
+      const el=document.getElementById('arr-'+k);
+      if(el) el.textContent = k===sortKey?(sortDir===1?'↑':'↓'):'↕';
+    });
+    document.querySelectorAll('th').forEach(th=>th.classList.remove('sorted'));
+    const thMap={id:0,date:1,user:2,dept:3,status:5};
+    if(thMap[sortKey]!==undefined) document.querySelectorAll('th')[thMap[sortKey]].classList.add('sorted');
   }
 
-  function changePage(page) {
-    currentPage = page;
-    render();
+  function renderPagination(pages,total){
+    const pg=document.getElementById('pagination');
+    if(pages<=1||!total){pg.innerHTML='';return;}
+    let h=`<button class="page-btn" onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+    for(let p=1;p<=pages;p++){
+      if(pages>7&&p>2&&p<pages-1&&Math.abs(p-currentPage)>1){if(p===3||p===pages-2)h+=`<span style="color:var(--muted2);padding:0 2px">…</span>`;continue;}
+      h+=`<button class="page-btn ${p===currentPage?'active':''}" onclick="gotoPage(${p})">${p}</button>`;
+    }
+    h+=`<button class="page-btn" onclick="gotoPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>›</button>`;
+    pg.innerHTML=h;
   }
+
+  function gotoPage(p){ currentPage=p; render(); }
+  function sortTable(k){ if(sortKey===k) sortDir*=-1; else{sortKey=k;sortDir=1;} currentPage=1; render(); }
+
+  // ── Modal: new ─────────────────────────────────────────────────
+  function openNewModal(){
+    modalMode='new'; editingId=null;
+    document.getElementById('modalTitle').textContent     = '// NEW_TICKET';
+    document.getElementById('modalSubmitBtn').textContent = 'Create Ticket';
+    document.getElementById('f-user').value='';
+    document.getElementById('f-dept').value='';
+    document.getElementById('f-desc').value='';
+    document.getElementById('f-solution').value='';
+    document.getElementById('f-status').value='Open';
+    document.getElementById('f-resolver').value='';
+    document.getElementById('f-resolvedate').value='';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  // ── Modal: edit ────────────────────────────────────────────────
+  function openEditModal(id){
+    const t=tickets.find(x=>x.id===id); if(!t) return;
+    modalMode='edit'; editingId=id;
+    document.getElementById('modalTitle').textContent     = '// EDIT · '+id;
+    document.getElementById('modalSubmitBtn').textContent = 'Save Changes';
+    document.getElementById('f-user').value       = t.user;
+    document.getElementById('f-dept').value       = t.dept||'';
+    document.getElementById('f-desc').value       = t.desc;
+    document.getElementById('f-solution').value   = t.solution||'';
+    document.getElementById('f-status').value     = t.status;
+    document.getElementById('f-resolver').value   = t.resolver||'';
+    document.getElementById('f-resolvedate').value= t.resolvedate||'';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+  function handleOverlayClick(e){ if(e.target===document.getElementById('modalOverlay')) closeModal(); }
+
+  function submitTicket(){
+    const user=document.getElementById('f-user').value.trim();
+    const desc=document.getElementById('f-desc').value.trim();
+    if(!user||!desc){ alert('Please fill in Raised By and Description.'); return; }
+    const fields = {
+      user, desc,
+      dept:        document.getElementById('f-dept').value,
+      status:      document.getElementById('f-status').value,
+      solution:    document.getElementById('f-solution').value.trim(),
+      resolver:    document.getElementById('f-resolver').value.trim(),
+      resolvedate: document.getElementById('f-resolvedate').value,
+    };
+    if(modalMode==='new'){
+      tickets.unshift({id:nextId(), date:new Date().toISOString().slice(0,10), ...fields});
+      currentPage=1;
+    } else {
+      const idx=tickets.findIndex(x=>x.id===editingId);
+      if(idx>-1) tickets[idx]={...tickets[idx], ...fields};
+    }
+    closeModal(); render();
+  }
+
+  // ── Delete ─────────────────────────────────────────────────────
+  function openDeleteConfirm(id){
+    deletingId=id;
+    document.getElementById('confirmMsg').textContent=`Delete ${id}? This cannot be undone.`;
+    document.getElementById('confirmOverlay').classList.add('open');
+  }
+  function closeConfirm(){ document.getElementById('confirmOverlay').classList.remove('open'); deletingId=null; }
+  function handleConfirmOverlayClick(e){ if(e.target===document.getElementById('confirmOverlay')) closeConfirm(); }
+  function confirmDelete(){
+    if(deletingId) tickets=tickets.filter(t=>t.id!==deletingId);
+    const pages=Math.max(1,Math.ceil(getFiltered().length/PER_PAGE));
+    if(currentPage>pages) currentPage=pages;
+    closeConfirm(); render();
+  }
+
+  // ── Filters ────────────────────────────────────────────────────
+  ['searchInput','filterStatus','filterDate'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',()=>{currentPage=1;render();});
+    document.getElementById(id).addEventListener('change',()=>{currentPage=1;render();});
+  });
+
+  render();
 </script>
 </body>
 </html>
