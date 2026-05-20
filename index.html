@@ -368,6 +368,7 @@
 
      footer {
       position: relative;
+      width: 100%;
       z-index: 1;
       border-top: 1px solid var(--border);
       padding: 2rem clamp(1.5rem, 5vw, 4rem);
@@ -376,11 +377,10 @@
       align-items: center;
       font-size: 0.8rem;
       color: var(--muted);
-      flex-wrap: wrap;
-      gap: 1rem;
+      flex-wrap: nowrap;
     }
       footer span {
-        display: block;
+        display: flex;
       }
 
   </style>
@@ -540,25 +540,14 @@
     <span>Coded with care &amp; a lot of ☕</span>
   </footer>
 
-<!-- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>-->
 <script>
- // import { createClient } from '@supabase/supabase-js'
+  const API = 'api/tickets.php';
 
- //const supabase = createClient(
-//  process.env.NEXT_PUBLIC_SUPABASE_URL!,
- // process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-//)
-//  const { data, error } = await supabase
-//  .from('your_table')
-//  .select('*')
-
-if (error) console.error(error)
-else console.log(data)
- let tickets   = [];   // starts empty
- let sortKey   = 'date', sortDir = -1;
- let currentPage = 1;
- const PER_PAGE  = 10;
- let modalMode = 'new';
+  let tickets   = [];   // starts empty
+  let sortKey   = 'date', sortDir = -1;
+  let currentPage = 1;
+  const PER_PAGE  = 10;
+  let modalMode = 'new';
   let editingId  = null;
   let deletingId = null;
 
@@ -576,14 +565,56 @@ else console.log(data)
     const dd = String(now.getDate()).padStart(2,'0');
     const mm = String(now.getMonth()+1).padStart(2,'0');
     const prefix = dd+mm;
-    // find highest seq number among tickets with same DDMM prefix
     const seq = tickets
       .map(t => { const m = t.id.match(/^(\d{4})-(\d+)$/); return (m && m[1]===prefix) ? parseInt(m[2],10) : 0; })
       .reduce((a,b)=>Math.max(a,b), 0);
     return prefix+'-'+String(seq+1).padStart(3,'0');
   }
 
-  // ── Filter / sort ──────────────────────────────────────────────
+  async function loadTickets(){
+    try {
+      const res = await fetch(API, {
+        method:'GET', 
+        headers:{'Content-Type':'application/json'}
+      });
+      if(!res.ok) throw new Error('Failed to load tickets');
+      tickets = await res.json();
+      render();
+    } catch(e) {
+      console.error(e);
+      alert('Error loading tickets. Please try again later.\n' + e.message);
+    }
+  }
+
+  async function apiCreate(payload){
+    const res = await fetch(API, { 
+      method:'POST', 
+      headers:{'Content-Type':'application/json'}, 
+      body:JSON.stringify(payload) 
+    });
+    if(!res.ok) throw new Error('Failed to create ticket' + (res.statusText ? ': ' + res.statusText : ''));
+    return await res.json();
+  }
+
+  async function apiUpdate(id, payload){
+    const res = await fetch(API+'?id='+id, { 
+      method:'PUT',
+      headers:{'Content-Type':'application/json'}, 
+      body:JSON.stringify(payload)
+     });
+    if(!res.ok) throw new Error('Failed to update ticket' + (res.statusText ? ': ' + res.statusText : ''));
+    return await res.json();
+  }
+
+  async function apiDelete(id){
+    const res = await fetch(API+'?id='+id, { 
+      method:'DELETE', 
+      headers:{'Content-Type':'application/json'}
+    });
+    if(!res.ok) throw new Error('Failed to delete ticket' + (res.statusText ? ': ' + res.statusText : '') );
+    return await res.json();
+  }
+
   function getFiltered(){
     const q    = document.getElementById('searchInput').value.toLowerCase();
     const stat = document.getElementById('filterStatus').value;
@@ -600,14 +631,14 @@ else console.log(data)
     });
   }
 
-  // ── Render ─────────────────────────────────────────────────────
   function render(){
-    const data  = getFiltered();
-    const total = data.length;
-    const pages = Math.max(1,Math.ceil(total/PER_PAGE));
-    currentPage = Math.min(currentPage,pages);
-    const slice = data.slice((currentPage-1)*PER_PAGE, currentPage*PER_PAGE);
-
+    const container = document.getElementById('ticket-container');
+    const filtered = getFiltered();
+    const total = filtered.length;
+    const pages = Math.ceil(total / PER_PAGE);
+    if(currentPage > pages) currentPage = pages || 1;
+    const start = (currentPage-1)*PER_PAGE;
+    const slice = filtered.slice(start, start + PER_PAGE);
     const tbody = document.getElementById('ticketBody');
 
     if(!tickets.length){
@@ -659,7 +690,7 @@ else console.log(data)
       ? (total ? `Showing ${slice.length} of ${total} ticket${total!==1?'s':''}` : '0 tickets match filters')
       : 'No tickets yet';
 
-    renderPagination(pages,total);
+      renderPagination(pages,total);
 
     document.getElementById('count-open').textContent  = tickets.filter(t=>t.status==='Open').length;
     document.getElementById('count-prog').textContent  = tickets.filter(t=>t.status==='In Progress').length;
@@ -672,7 +703,6 @@ else console.log(data)
     document.querySelectorAll('th').forEach(th=>th.classList.remove('sorted'));
     const thMap={id:0,date:1,user:2,dept:3,status:5};
     if(thMap[sortKey]!==undefined) document.querySelectorAll('th')[thMap[sortKey]].classList.add('sorted');
-  }
 
   function renderPagination(pages,total){
     const pg=document.getElementById('pagination');
@@ -685,11 +715,10 @@ else console.log(data)
     h+=`<button class="page-btn" onclick="gotoPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>›</button>`;
     pg.innerHTML=h;
   }
+}
 
   function gotoPage(p){ currentPage=p; render(); }
   function sortTable(k){ if(sortKey===k) sortDir*=-1; else{sortKey=k;sortDir=1;} currentPage=1; render(); }
-
-  // ── Modal: new ─────────────────────────────────────────────────
   function openNewModal(){
     modalMode='new'; editingId=null;
     document.getElementById('modalTitle').textContent     = '// NEW_TICKET';
@@ -704,7 +733,6 @@ else console.log(data)
     document.getElementById('modalOverlay').classList.add('open');
   }
 
-  // ── Modal: edit ────────────────────────────────────────────────
   function openEditModal(id){
     const t=tickets.find(x=>x.id===id); if(!t) return;
     modalMode='edit'; editingId=id;
@@ -723,50 +751,70 @@ else console.log(data)
   function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
   function handleOverlayClick(e){ if(e.target===document.getElementById('modalOverlay')) closeModal(); }
 
-  function submitTicket(){
-    const user=document.getElementById('f-user').value.trim();
-    const desc=document.getElementById('f-desc').value.trim();
-    if(!user||!desc){ alert('Please fill in Raised By and Description.'); return; }
-    const fields = {
-      user, desc,
-      dept:        document.getElementById('f-dept').value,
-      status:      document.getElementById('f-status').value,
-      solution:    document.getElementById('f-solution').value.trim(),
-      resolver:    document.getElementById('f-resolver').value.trim(),
-      resolvedate: document.getElementById('f-resolvedate').value,
-    };
-    if(modalMode==='new'){
-      tickets.unshift({id:nextId(), date:new Date().toISOString().slice(0,10), ...fields});
-      currentPage=1;
-    } else {
-      const idx=tickets.findIndex(x=>x.id===editingId);
-      if(idx>-1) tickets[idx]={...tickets[idx], ...fields};
-    }
-    closeModal(); render();
-  }
+async function submitTicket(){
+  const user = document.getElementById('f-user').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+  if(!user||!desc){ alert('Please fill in Raised By and Description.'); return; }
 
-  // ── Delete ─────────────────────────────────────────────────────
+  const payload = {
+    id:          modalMode==='new' ? nextId() : editingId,
+    date:        new Date().toISOString().slice(0,10),
+    user,
+    dept:        document.getElementById('f-dept').value,
+    desc,
+    status:      document.getElementById('f-status').value,
+    solution:    document.getElementById('f-solution').value.trim(),
+    resolver:    document.getElementById('f-resolver').value.trim(),
+    resolvedate: document.getElementById('f-resolvedate').value,
+  };
+
+  const btn = document.getElementById('modalSubmitBtn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+
+  try {
+    if(modalMode==='new'){
+      await apiCreate(payload); currentPage=1;
+    } else {
+      await apiUpdate(payload);
+    }
+    closeModal();
+    await loadTickets();
+  } catch(e) {
+    alert('Save failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = modalMode==='new' ? 'Create Ticket' : 'Save Changes';
+  }
+}
+
   function openDeleteConfirm(id){
     deletingId=id;
-    document.getElementById('confirmMsg').textContent=`Delete ${id}? This cannot be undone.`;
+    const t = tickets.find(x=>x.id===id);
+    if(t) document.getElementById('confirmMsg').textContent = `Are you sure you want to delete ticket ${id} raised by ${t.user}? This action cannot be undone.`;
     document.getElementById('confirmOverlay').classList.add('open');
   }
-  function closeConfirm(){ document.getElementById('confirmOverlay').classList.remove('open'); deletingId=null; }
+  function closeConfirm(){ deletingId=null; document.getElementById('confirmOverlay').classList.remove('open'); }
   function handleConfirmOverlayClick(e){ if(e.target===document.getElementById('confirmOverlay')) closeConfirm(); }
   function confirmDelete(){
-    if(deletingId) tickets=tickets.filter(t=>t.id!==deletingId);
-    const pages=Math.max(1,Math.ceil(getFiltered().length/PER_PAGE));
-    if(currentPage>pages) currentPage=pages;
-    closeConfirm(); render();
+    if(!deletingId) return;
+    const btn = document.querySelector('.btn-confirm-del');
+    btn.textContent = 'Deleting…'; btn.disabled = true;
+    apiDelete(deletingId).then(()=>{
+      closeConfirm();
+      loadTickets();
+    }).catch(e=>{
+      alert('Delete failed: ' + e.message);
+    }).finally(()=>{
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+    });
   }
-
-  // ── Filters ────────────────────────────────────────────────────
   ['searchInput','filterStatus','filterDate'].forEach(id=>{
     document.getElementById(id).addEventListener('input',()=>{currentPage=1;render();});
     document.getElementById(id).addEventListener('change',()=>{currentPage=1;render();});
   });
 
-  render();
+  loadTickets();
 </script>
 </body>
 </html>
