@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IT Support — Ticket System</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:        #1a1a1a;
+      --bg2:       #222222;
+      --surface:   #2a2a2a;
+      --surface2:  #323232;
+      --border:    #3a3a3a;
+      --border2:   #484848;
+      --accent:    #d0d0d0;
+      --accent2:   #a8a8a8;
+      --text:      #e8e8e8;
+      --muted:     #888888;
+      --muted2:    #606060;
+      --danger:    #e05555;
+      --warn:      #c8923a;
+      --ok:        #5aaa7a;
+      --info:      #7090b0;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'DM Sans', sans-serif;
+      --radius:    7px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: linear-gradient(155deg, #202020 0%, #181818 45%, #111111 100%);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ── */
+    header {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 36px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(22,22,22,.96);
+      backdrop-filter: blur(10px);
+    }
+
+    .logo { display: flex; align-items: center; gap: 12px; }
+
+    .logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, #505050 0%, #2e2e2e 100%);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 13px; font-weight: 700;
+      color: var(--accent);
+    }
+
+    .logo-text { font-family: var(--font-mono); font-size: 13px; letter-spacing: .08em; color: var(--accent2); }
+    .logo-sub  { color: var(--muted2); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+
+    .header-meta { display: flex; align-items: center; gap: 16px; }
+
+    .stat-chip {
+      font-family: var(--font-mono); font-size: 11px;
+      padding: 4px 12px; border-radius: 100px;
+      border: 1px solid var(--border); color: var(--muted);
+      background: var(--surface);
+    }
+    .stat-chip span { color: var(--accent); font-weight: 700; }
+
+    /* ── Main ── */
+    main {
+      position: relative; z-index: 1;
+      max-width: 1440px; margin: 0 auto;
+      padding: 30px 36px 60px;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 24px; flex-wrap: wrap;
+    }
+
+    .search-wrap { position: relative; flex: 1; min-width: 220px; }
+    .search-icon {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      color: var(--muted2); pointer-events: none;
+    }
+
+    input[type="search"], select {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-family: var(--font-sans); font-size: 14px;
+      border-radius: var(--radius); padding: 9px 13px; outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input[type="search"] { width: 100%; padding-left: 38px; }
+    input[type="search"]:focus, select:focus {
+      border-color: var(--border2);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.04);
+    }
+    select {
+      min-width: 148px; cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 11px center;
+      padding-right: 30px;
+    }
+    select option { background: var(--surface); }
+
+    .btn-new {
+      display: flex; align-items: center; gap: 7px;
+      background: linear-gradient(135deg, #484848 0%, #303030 100%);
+      color: var(--accent); font-family: var(--font-mono);
+      font-size: 12px; font-weight: 700; letter-spacing: .05em;
+      border: 1px solid var(--border2); border-radius: var(--radius);
+      padding: 9px 17px; cursor: pointer; white-space: nowrap;
+      transition: background .2s, transform .15s;
+    }
+    .btn-new:hover { background: linear-gradient(135deg, #565656 0%, #3a3a3a 100%); transform: translateY(-1px); }
+    .btn-new:active { transform: translateY(0); }
+
+    /* ── Table card ── */
+    .table-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+      box-shadow: 0 8px 48px rgba(0,0,0,.55);
+    }
+    .table-scroll { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+
+    thead {
+      background: linear-gradient(90deg, #2f2f2f 0%, #282828 100%);
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      font-family: var(--font-mono); font-size: 10.5px;
+      letter-spacing: .13em; text-transform: uppercase;
+      color: var(--muted); padding: 13px 15px; text-align: left;
+      white-space: nowrap; cursor: pointer; user-select: none;
+      transition: color .15s;
+    }
+    th:hover { color: var(--accent2); }
+    th.sorted { color: var(--accent); }
+    th:last-child { cursor: default; }
+    .sort-arrow { margin-left: 4px; opacity: .35; }
+    th.sorted .sort-arrow { opacity: 1; }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(58,58,58,.65);
+      transition: background .12s;
+      animation: rowIn .28s ease both;
+    }
+    @keyframes rowIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+    tbody tr:hover { background: rgba(255,255,255,.025); }
+    tbody tr:last-child { border-bottom: none; }
+
+    td { padding: 13px 15px; vertical-align: middle; }
+
+    .td-id   { font-family: var(--font-mono); font-size: 12px; color: var(--accent2); font-weight: 500; }
+    .td-date { font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    .td-user { display: flex; align-items: center; gap: 9px; }
+    .avatar {
+      width: 27px; height: 27px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+      flex-shrink: 0; background: var(--surface2);
+      border: 1px solid var(--border2); color: var(--accent2);
+    }
+
+    .td-desc {
+      max-width: 230px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; color: #c0c0c0;
+    }
+    .td-solution {
+      max-width: 190px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+      color: var(--muted); font-size: 13px;
+    }
+
+    /* ── Action buttons ── */
+    .td-actions { white-space: nowrap; }
+    .action-btns { display: flex; gap: 6px; }
+
+    .btn-edit, .btn-delete {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+      padding: 5px 10px; border-radius: 5px; cursor: pointer;
+      border: 1px solid; transition: all .14s; letter-spacing: .03em;
+    }
+    .btn-edit {
+      background: rgba(120,140,170,.1); border-color: rgba(120,140,170,.28);
+      color: #8898b8;
+    }
+    .btn-edit:hover { background: rgba(120,140,170,.2); border-color: rgba(120,140,170,.48); color: #aabbdd; }
+
+    .btn-delete {
+      background: rgba(200,70,70,.09); border-color: rgba(200,70,70,.22);
+      color: #b07070;
+    }
+    .btn-delete:hover { background: rgba(200,70,70,.2); border-color: rgba(200,70,70,.42); color: #d08888; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+      letter-spacing: .05em; padding: 3px 9px; border-radius: 100px; white-space: nowrap;
+    }
+    .badge::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+
+    .badge-open     { background:rgba(210,80,80,.11);  color:#c87878; border:1px solid rgba(210,80,80,.22); }
+    .badge-open::before { background:#b86060; animation:pulse 1.5s infinite; }
+    .badge-progress { background:rgba(195,145,55,.1);  color:#b08048; border:1px solid rgba(195,145,55,.22); }
+    .badge-progress::before { background:#a87038; }
+    .badge-resolved { background:rgba(85,165,115,.1);  color:#68a080; border:1px solid rgba(85,165,115,.2); }
+    .badge-resolved::before { background:#559068; }
+    .badge-closed   { background:rgba(96,96,96,.12);   color:#787878; border:1px solid rgba(96,96,96,.22); }
+    .badge-closed::before { background:#626262; }
+    .badge-pending  { background:rgba(100,138,175,.1); color:#7090a8; border:1px solid rgba(100,138,175,.2); }
+    .badge-pending::before { background:#608098; }
+
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.25} }
+
+    /* ── Empty state ── */
+    .empty-state { text-align:center; padding:80px 24px; color:var(--muted2); }
+    .empty-icon {
+      width:54px; height:54px; margin:0 auto 16px;
+      border-radius:50%; background:var(--surface2); border:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center; font-size:22px;
+    }
+    .empty-state h3 { font-family:var(--font-mono); font-size:13px; color:var(--muted); margin-bottom:6px; }
+    .empty-state p  { font-size:13px; }
+
+    /* ── Table footer ── */
+    .table-footer {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:11px 15px; border-top:1px solid var(--border);
+      font-family:var(--font-mono); font-size:11px; color:var(--muted2);
+      flex-wrap:wrap; gap:8px;
+      background: linear-gradient(90deg,#272727 0%,#232323 100%);
+    }
+    .pagination { display:flex; align-items:center; gap:5px; }
+    .page-btn {
+      background:var(--surface); border:1px solid var(--border);
+      color:var(--muted); font-family:var(--font-mono); font-size:11px;
+      width:27px; height:27px; border-radius:5px; cursor:pointer;
+      transition:all .12s; display:flex; align-items:center; justify-content:center;
+    }
+    .page-btn:hover { border-color:var(--border2); color:var(--accent); }
+    .page-btn.active { background:var(--surface2); border-color:var(--border2); color:var(--accent); font-weight:700; }
+    .page-btn:disabled { opacity:.25; cursor:default; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,.68); backdrop-filter:blur(6px);
+      z-index:100; align-items:center; justify-content:center; padding:20px;
+    }
+    .modal-overlay.open { display:flex; }
+    .modal {
+      background:linear-gradient(155deg,#2d2d2d 0%,#252525 100%);
+      border:1px solid var(--border2); border-radius:12px;
+      width:100%; max-width:560px;
+      box-shadow:0 24px 80px rgba(0,0,0,.72);
+      animation:modalIn .22s ease both;
+    }
+    @keyframes modalIn { from{opacity:0;transform:scale(.96) translateY(12px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+    .modal-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 22px; border-bottom:1px solid var(--border);
+    }
+    .modal-title { font-family:var(--font-mono); font-size:13px; color:var(--accent2); }
+    .modal-close { background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer; line-height:1; padding:0 4px; transition:color .15s; }
+    .modal-close:hover { color:var(--text); }
+
+    .modal-body { padding:22px; display:flex; flex-direction:column; gap:15px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-group label {
+      font-family:var(--font-mono); font-size:10px;
+      letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      background:var(--bg2); border:1px solid var(--border);
+      color:var(--text); font-family:var(--font-sans); font-size:14px;
+      border-radius:var(--radius); padding:9px 13px; outline:none;
+      transition:border-color .2s; width:100%;
+    }
+    .form-group textarea { resize:vertical; min-height:76px; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color:var(--border2); box-shadow:0 0 0 3px rgba(255,255,255,.04);
+    }
+
+    .modal-actions {
+      display:flex; justify-content:flex-end; gap:10px;
+      padding:14px 22px 18px; border-top:1px solid var(--border);
+    }
+    .btn-cancel {
+      background:none; border:1px solid var(--border); color:var(--muted);
+      font-family:var(--font-mono); font-size:12px; padding:8px 17px;
+      border-radius:var(--radius); cursor:pointer; transition:all .15s;
+    }
+    .btn-cancel:hover { border-color:var(--border2); color:var(--text); }
+    .btn-submit {
+      background:linear-gradient(135deg,#484848 0%,#343434 100%);
+      color:var(--accent); font-family:var(--font-mono);
+      font-size:12px; font-weight:700; border:1px solid var(--border2);
+      padding:8px 20px; border-radius:var(--radius); cursor:pointer; transition:background .15s;
+    }
+    .btn-submit:hover { background:linear-gradient(135deg,#585858 0%,#404040 100%); }
+
+    /* ── Confirm dialog ── */
+    .confirm-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,.72); backdrop-filter:blur(5px);
+      z-index:200; align-items:center; justify-content:center; padding:20px;
+    }
+    .confirm-overlay.open { display:flex; }
+    .confirm-box {
+      background:linear-gradient(155deg,#2d2d2d 0%,#232323 100%);
+      border:1px solid var(--border2); border-radius:10px;
+      padding:30px 28px 22px; max-width:360px; width:100%;
+      box-shadow:0 16px 60px rgba(0,0,0,.65);
+      animation:modalIn .2s ease both; text-align:center;
+    }
+    .confirm-icon { font-size:26px; margin-bottom:12px; }
+    .confirm-title { font-family:var(--font-mono); font-size:13px; color:var(--accent2); margin-bottom:8px; }
+    .confirm-msg { font-size:13px; color:var(--muted); margin-bottom:22px; line-height:1.5; }
+    .confirm-actions { display:flex; justify-content:center; gap:10px; }
+    .btn-confirm-del {
+      background:rgba(200,70,70,.14); border:1px solid rgba(200,70,70,.32);
+      color:#c07070; font-family:var(--font-mono); font-size:12px; font-weight:700;
+      padding:8px 20px; border-radius:var(--radius); cursor:pointer; transition:all .14s;
+    }
+    .btn-confirm-del:hover { background:rgba(200,70,70,.25); color:#d88888; }
+
+    /* ── Department tag ── */
+    .dept-tag {
+      display: inline-block;
+      font-family: var(--font-mono); font-size: 10.5px;
+      padding: 3px 9px; border-radius: 4px;
+      background: rgba(160,160,160,.08);
+      border: 1px solid rgba(160,160,160,.18);
+      color: var(--accent2); white-space: nowrap;
+      letter-spacing: .04em;
+    }
+
+    /* ── Resolver cell ── */
+    .td-resolver { min-width: 160px; }
+    .resolver-wrap { display:flex; flex-direction:column; gap:3px; }
+    .resolver-name { font-size:13px; color:var(--text); }
+    .resolver-date {
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+    .resolver-none { color: var(--muted2); font-size:13px; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width:6px; height:6px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:10px; }
+    ::-webkit-scrollbar-thumb:hover { background:var(--muted2); }
+
+     footer {
+      position: relative;
+      width: 100%;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 2rem clamp(1.5rem, 5vw, 4rem);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      flex-wrap: nowrap;
+    }
+      footer span {
+        display: flex;
+      }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">IT</div>
+    <div>
+      <div class="logo-text">SUPPORT::DESK</div>
+      <div class="logo-sub">Ticketing</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <div class="stat-chip">Open&nbsp;<span id="count-open">0</span></div>
+    <div class="stat-chip">In Progress&nbsp;<span id="count-prog">0</span></div>
+    <div class="stat-chip">Total&nbsp;<span id="count-total">0</span></div>
+  </div>
+</header>
+
+<main>
+  <div class="controls">
+    <div class="search-wrap">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="search" id="searchInput" placeholder="Search tickets, users, descriptions…"/>
+    </div>
+    <select id="filterStatus">
+      <option value="">All Statuses</option>
+      <option value="Open">Open</option>
+      <option value="In Progress">In Progress</option>
+      <option value="Pending">Pending</option>
+      <option value="Resolved">Resolved</option>
+      <option value="Closed">Closed</option>
+    </select>
+    <select id="filterDate">
+      <option value="">All Time</option>
+      <option value="7">Last 7 Days</option>
+      <option value="30">Last 30 Days</option>
+      <option value="90">Last 90 Days</option>
+    </select>
+    <button class="btn-new" onclick="openNewModal()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      New Ticket
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortTable('id')">Ticket ID <span class="sort-arrow" id="arr-id">↕</span></th>
+            <th onclick="sortTable('date')">Date <span class="sort-arrow" id="arr-date">↕</span></th>
+            <th onclick="sortTable('user')">Raised By <span class="sort-arrow" id="arr-user">↕</span></th>
+            <th onclick="sortTable('dept')">Department <span class="sort-arrow" id="arr-dept">↕</span></th>
+            <th>Description</th>
+            <th onclick="sortTable('status')">Status <span class="sort-arrow" id="arr-status">↕</span></th>
+            <th>Solution</th>
+            <th>Resolved By</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="ticketBody"></tbody>
+      </table>
+    </div>
+    <div class="table-footer">
+      <div id="rowCount">No tickets yet</div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+</main>
+
+<!-- New / Edit Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">// NEW_TICKET</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Raised By</label>
+          <input type="text" id="f-user" placeholder="Full name"/>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Pending">Pending</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Department</label>
+        <select id="f-dept">
+          <option value="">— Select department —</option>
+          <option value="BTC">BTC</option>
+          <option value="Chloroxine">Chloroxine</option>
+          <option value="CWH">CWH</option>
+          <option value="Detergents">Detergents</option>
+          <option value="Engineering">Engineering</option>
+          <option value="Finance">Finance</option>
+          <option value="HR">HR</option>
+          <option value="Insight">Insight</option>
+          <option value="IT">IT</option>
+          <option value="Sales">Sales</option>
+          <option value="Supply Chain">Supply Chain</option>
+          <option value="Sulphonation">Sulphonation</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="f-desc" placeholder="Describe the issue…"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Solution (optional)</label>
+        <textarea id="f-solution" placeholder="Resolution steps or notes…" style="min-height:64px"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Resolved By (optional)</label>
+          <input type="text" id="f-resolver" placeholder="Technician name"/>
+        </div>
+        <div class="form-group">
+          <label>Resolution Date (optional)</label>
+          <input type="date" id="f-resolvedate"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-submit" id="modalSubmitBtn" onclick="submitTicket()">Create Ticket</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div class="confirm-overlay" id="confirmOverlay" onclick="handleConfirmOverlayClick(event)">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Delete Ticket?</div>
+    <div class="confirm-msg" id="confirmMsg">This action cannot be undone.</div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-confirm-del" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+    <span>&copy; 2026 Rax &#9876; Masix. All rights reserved.</span>
+    <span>Coded with care &amp; a lot of ☕</span>
+  </footer>
+
+<script>
+  const API = 'api/tickets.php';
+
+  let tickets   = [];   // starts empty
+  let sortKey   = 'date', sortDir = -1;
+  let currentPage = 1;
+  const PER_PAGE  = 10;
+  let modalMode = 'new';
+  let editingId  = null;
+  let deletingId = null;
+
+  // ── Helpers ────────────────────────────────────────────────────
+  function getInitials(n){ return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+
+  function statusClass(s){
+    return 'badge badge-'+({Open:'open','In Progress':'progress',Resolved:'resolved',Closed:'closed',Pending:'pending'}[s]||'closed');
+  }
+
+  function formatDate(d){ return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+
+  function nextId(){
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2,'0');
+    const mm = String(now.getMonth()+1).padStart(2,'0');
+    const prefix = dd+mm;
+    const seq = tickets
+      .map(t => { const m = t.id.match(/^(\d{4})-(\d+)$/); return (m && m[1]===prefix) ? parseInt(m[2],10) : 0; })
+      .reduce((a,b)=>Math.max(a,b), 0);
+    return prefix+'-'+String(seq+1).padStart(3,'0');
+  }
+
+  async function loadTickets(){
+    try {
+      const res = await fetch(API, {
+        method:'GET', 
+        headers:{'Content-Type':'application/json'}
+      });
+      if(!res.ok) throw new Error('Failed to load tickets');
+      tickets = await res.json();
+      render();
+    } catch(e) {
+      console.error(e);
+      alert('Error loading tickets. Please try again later.\n' + e.message);
+    }
+  }
+
+  async function apiCreate(payload){
+    const res = await fetch(API, { 
+      method:'POST', 
+      headers:{'Content-Type':'application/json'}, 
+      body:JSON.stringify(payload) 
+    });
+    if(!res.ok) throw new Error('Failed to create ticket' + (res.statusText ? ': ' + res.statusText : ''));
+    return await res.json();
+  }
+
+  async function apiUpdate(id, payload){
+    const res = await fetch(API+'?id='+id, { 
+      method:'PUT',
+      headers:{'Content-Type':'application/json'}, 
+      body:JSON.stringify(payload)
+     });
+    if(!res.ok) throw new Error('Failed to update ticket' + (res.statusText ? ': ' + res.statusText : ''));
+    return await res.json();
+  }
+
+  async function apiDelete(id){
+    const res = await fetch(API+'?id='+id, { 
+      method:'DELETE', 
+      headers:{'Content-Type':'application/json'}
+    });
+    if(!res.ok) throw new Error('Failed to delete ticket' + (res.statusText ? ': ' + res.statusText : '') );
+    return await res.json();
+  }
+
+  function getFiltered(){
+    const q    = document.getElementById('searchInput').value.toLowerCase();
+    const stat = document.getElementById('filterStatus').value;
+    const days = parseInt(document.getElementById('filterDate').value)||0;
+    const now  = Date.now();
+    return tickets.filter(t=>{
+      const mQ = !q    || [t.id,t.user,t.desc,t.solution||'',t.status,t.dept||'',t.resolver||''].some(f=>f.toLowerCase().includes(q));
+      const mS = !stat || t.status===stat;
+      const mD = !days || (now-new Date(t.date).getTime())<=days*864e5;
+      return mQ&&mS&&mD;
+    }).sort((a,b)=>{
+      const av=a[sortKey]||'', bv=b[sortKey]||'';
+      return av<bv?-sortDir:av>bv?sortDir:0;
+    });
+  }
+
+  function render(){
+    const container = document.getElementById('ticket-container');
+    const filtered = getFiltered();
+    const total = filtered.length;
+    const pages = Math.ceil(total / PER_PAGE);
+    if(currentPage > pages) currentPage = pages || 1;
+    const start = (currentPage-1)*PER_PAGE;
+    const slice = filtered.slice(start, start + PER_PAGE);
+    const tbody = document.getElementById('ticketBody');
+
+    if(!tickets.length){
+      tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state">
+        <div class="empty-icon">🎫</div>
+        <h3>No tickets yet</h3>
+        <p>Click <strong>New Ticket</strong> to log the first support request.</p>
+      </div></td></tr>`;
+    } else if(!slice.length){
+      tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>No results</h3>
+        <p>No tickets match your current filters.</p>
+      </div></td></tr>`;
+    } else {
+      tbody.innerHTML = slice.map((t,i)=>`
+        <tr style="animation-delay:${i*0.03}s">
+          <td class="td-id">${t.id}</td>
+          <td class="td-date">${formatDate(t.date)}</td>
+          <td><div class="td-user"><div class="avatar">${getInitials(t.user)}</div>${t.user}</div></td>
+          <td>${t.dept ? `<span class="dept-tag">${t.dept}</span>` : `<span style="opacity:.28">—</span>`}</td>
+          <td class="td-desc" title="${t.desc}">${t.desc}</td>
+          <td><span class="${statusClass(t.status)}">${t.status}</span></td>
+          <td class="td-solution" title="${t.solution||'—'}">${t.solution||'<span style="opacity:.28">—</span>'}</td>
+          <td class="td-resolver">
+            ${t.resolver
+              ? `<div class="resolver-wrap">
+                   <div class="resolver-name">${t.resolver}</div>
+                   ${t.resolvedate ? `<div class="resolver-date">${formatDate(t.resolvedate)}</div>` : ''}
+                 </div>`
+              : `<span class="resolver-none">—</span>`}
+          </td>
+          <td class="td-actions">
+            <div class="action-btns">
+              <button class="btn-edit" onclick="openEditModal('${t.id}')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+                Edit
+              </button>
+              <button class="btn-delete" onclick="openDeleteConfirm('${t.id}')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+
+    document.getElementById('rowCount').textContent = tickets.length
+      ? (total ? `Showing ${slice.length} of ${total} ticket${total!==1?'s':''}` : '0 tickets match filters')
+      : 'No tickets yet';
+
+      renderPagination(pages,total);
+
+    document.getElementById('count-open').textContent  = tickets.filter(t=>t.status==='Open').length;
+    document.getElementById('count-prog').textContent  = tickets.filter(t=>t.status==='In Progress').length;
+    document.getElementById('count-total').textContent = tickets.length;
+
+    ['id','date','user','dept','status'].forEach(k=>{
+      const el=document.getElementById('arr-'+k);
+      if(el) el.textContent = k===sortKey?(sortDir===1?'↑':'↓'):'↕';
+    });
+    document.querySelectorAll('th').forEach(th=>th.classList.remove('sorted'));
+    const thMap={id:0,date:1,user:2,dept:3,status:5};
+    if(thMap[sortKey]!==undefined) document.querySelectorAll('th')[thMap[sortKey]].classList.add('sorted');
+
+  function renderPagination(pages,total){
+    const pg=document.getElementById('pagination');
+    if(pages<=1||!total){pg.innerHTML='';return;}
+    let h=`<button class="page-btn" onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+    for(let p=1;p<=pages;p++){
+      if(pages>7&&p>2&&p<pages-1&&Math.abs(p-currentPage)>1){if(p===3||p===pages-2)h+=`<span style="color:var(--muted2);padding:0 2px">…</span>`;continue;}
+      h+=`<button class="page-btn ${p===currentPage?'active':''}" onclick="gotoPage(${p})">${p}</button>`;
+    }
+    h+=`<button class="page-btn" onclick="gotoPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>›</button>`;
+    pg.innerHTML=h;
+  }
+}
+
+  function gotoPage(p){ currentPage=p; render(); }
+  function sortTable(k){ if(sortKey===k) sortDir*=-1; else{sortKey=k;sortDir=1;} currentPage=1; render(); }
+  function openNewModal(){
+    modalMode='new'; editingId=null;
+    document.getElementById('modalTitle').textContent     = '// NEW_TICKET';
+    document.getElementById('modalSubmitBtn').textContent = 'Create Ticket';
+    document.getElementById('f-user').value='';
+    document.getElementById('f-dept').value='';
+    document.getElementById('f-desc').value='';
+    document.getElementById('f-solution').value='';
+    document.getElementById('f-status').value='Open';
+    document.getElementById('f-resolver').value='';
+    document.getElementById('f-resolvedate').value='';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function openEditModal(id){
+    const t=tickets.find(x=>x.id===id); if(!t) return;
+    modalMode='edit'; editingId=id;
+    document.getElementById('modalTitle').textContent     = '// EDIT · '+id;
+    document.getElementById('modalSubmitBtn').textContent = 'Save Changes';
+    document.getElementById('f-user').value       = t.user;
+    document.getElementById('f-dept').value       = t.dept||'';
+    document.getElementById('f-desc').value       = t.desc;
+    document.getElementById('f-solution').value   = t.solution||'';
+    document.getElementById('f-status').value     = t.status;
+    document.getElementById('f-resolver').value   = t.resolver||'';
+    document.getElementById('f-resolvedate').value= t.resolvedate||'';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+  function handleOverlayClick(e){ if(e.target===document.getElementById('modalOverlay')) closeModal(); }
+
+async function submitTicket(){
+  const user = document.getElementById('f-user').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+  if(!user||!desc){ alert('Please fill in Raised By and Description.'); return; }
+
+  const payload = {
+    id:          modalMode==='new' ? nextId() : editingId,
+    date:        new Date().toISOString().slice(0,10),
+    user,
+    dept:        document.getElementById('f-dept').value,
+    desc,
+    status:      document.getElementById('f-status').value,
+    solution:    document.getElementById('f-solution').value.trim(),
+    resolver:    document.getElementById('f-resolver').value.trim(),
+    resolvedate: document.getElementById('f-resolvedate').value,
+  };
+
+  const btn = document.getElementById('modalSubmitBtn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+
+  try {
+    if(modalMode==='new'){
+      await apiCreate(payload); currentPage=1;
+    } else {
+      await apiUpdate(payload);
+    }
+    closeModal();
+    await loadTickets();
+  } catch(e) {
+    alert('Save failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = modalMode==='new' ? 'Create Ticket' : 'Save Changes';
+  }
+}
+
+  function openDeleteConfirm(id){
+    deletingId=id;
+    const t = tickets.find(x=>x.id===id);
+    if(t) document.getElementById('confirmMsg').textContent = `Are you sure you want to delete ticket ${id} raised by ${t.user}? This action cannot be undone.`;
+    document.getElementById('confirmOverlay').classList.add('open');
+  }
+  function closeConfirm(){ deletingId=null; document.getElementById('confirmOverlay').classList.remove('open'); }
+  function handleConfirmOverlayClick(e){ if(e.target===document.getElementById('confirmOverlay')) closeConfirm(); }
+  function confirmDelete(){
+    if(!deletingId) return;
+    const btn = document.querySelector('.btn-confirm-del');
+    btn.textContent = 'Deleting…'; btn.disabled = true;
+    apiDelete(deletingId).then(()=>{
+      closeConfirm();
+      loadTickets();
+    }).catch(e=>{
+      alert('Delete failed: ' + e.message);
+    }).finally(()=>{
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+    });
+  }
+  ['searchInput','filterStatus','filterDate'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',()=>{currentPage=1;render();});
+    document.getElementById(id).addEventListener('change',()=>{currentPage=1;render();});
+  });
+
+  loadTickets();
+</script>
+</body>
+</html>
