@@ -37,13 +37,11 @@ $currentUser = $_SESSION['user'];
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TRAC — Ticketing System</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.cdnfonts.com/css/heritage" rel="stylesheets"/>
   <style>
-    /*@import url('https://fonts.cdnfonts.com/css/heritage');*/
     :root {
       --bg:     linear-gradient(55deg, #0e3a5d, #d9f0f2);
       --bg2:      linear-gradient(135deg, #b2dfdb, #555050);
-      --surface:   #ffffff;
+      --surface:   #ffffffa9;
       --surface2:  #ffffff3f;
       --border:    #3a3a3a;
       --border2:   #484848;
@@ -70,6 +68,7 @@ $currentUser = $_SESSION['user'];
       --font-sans: 'DM Sans', sans-serif;
       --radius:    7px;
     }
+    @import url('https://fonts.cdnfonts.com/css/heritage');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html{
@@ -115,10 +114,9 @@ $currentUser = $_SESSION['user'];
     .logo-sub  { color: #110411; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
 
     .header-meta { display: flex; align-items: center; gap: 16px; }
-    .header-beta {display:flex;  position: relative; align-items:left; gap: 2em; margin: .4em;}
     .btn-la {
       font-family: var(--font-mono); font-size: 11px; font-weight: 500;
-      padding: 4px 12px; border-radius: 4px;
+      padding: 4px 12px; border-radius: 100px;
       letter-spacing: .05em; text-decoration: none;
       border: 1px solid var(--border); color: var(--text1);
       background: var(--btn-stat);
@@ -128,20 +126,11 @@ $currentUser = $_SESSION['user'];
     .btn-la:hover { background: var(--btn-stat2); border-color: var(--border2); color: var(--text); }
     .stat-chip {
       font-family: var(--font-mono); font-size: 11px;
-      padding: 4px 12px; border-radius: 5px;
+      padding: 4px 12px; border-radius: 100px;
       border: 1px solid var(--border); color: var(--text1);
       background: var(--btn-stat);
     }
-    .stat-chip1{
-      position: sticky;
-      top:95vh;
-      font-family: var(--font-mono); font-size: 11px;
-      padding: 4px 12px; border-radius: 10px;
-      border: 1px solid var(--border); color: var(--text1);
-      background: var(--btn-stat);
-    }
-    .stat-chip, .stat-chip1 span { position:relative ;color: #22ff00; font-weight: 700; }
-
+    .stat-chip span { color: #22ff00; font-weight: 700; }
 
     /* ── Layout shell ── */
     .app-shell {
@@ -153,59 +142,16 @@ $currentUser = $_SESSION['user'];
     /* ── Sidebar ── */
     .sidebar {
       position: sticky;
-      top: 82px;
-      left:0;
-      width: 180px;
+      top: 81px;
+      width: 220px;
+      flex-shrink: 0;
       padding: 24px 14px;
       height: calc(100vh - 81px);
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
-      flex-shrink: 1;
       gap: 4px;
       border-right: 1px solid var(--border);
-      box-shadow: 0 0 24px #0000008e;
-      overflow: hidden;
-      transition: left .25s ease;
-      white-space: nowrap;
     }
-     .sidebar.collapsed {
-       /*width: 0;*/
-       display: none;
-     }
-
-/* Toggle button */
-.sidebar-toggle {
-  position: fixed;
-  top: 50%;
-  left: 20px;
-  transform: translate(-50%, -50%);
-  z-index: 100;
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  border-radius: 25%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: left 0.25s ease;
-  font-size: 26px;
-  line-height: 1;
-}
-
-.sidebar-toggle.collapsed {
-  left: 20px;
-}
-
-.toggle-icon {
-  display: inline-block;
-  scale: -1 1;
-}
-
-.sidebar-toggle.collapsed .toggle-icon {
-  transform: rotate(180deg);  /* flips arrow to point right */
-}
     .nav-section-label {
       font-family: var(--font-mono); font-size: 10px;
       letter-spacing: .15em; text-transform: uppercase;
@@ -247,13 +193,13 @@ $currentUser = $_SESSION['user'];
       color: var(--text); margin-bottom: 4px;
     }
     .page-subtitle {
-      font-size: 13px; color: var(--muted2); margin-bottom:24px;
+      font-size: 13px; color: var(--muted2); margin-bottom: 24px;
     }
 
     /* ── Analytics cards ── */
     .analytics-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 14px; margin-bottom: 24px;
     }
     .analytics-card {
@@ -277,7 +223,7 @@ $currentUser = $_SESSION['user'];
 
     .analytics-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.3fr 1fr;
       gap: 16px; margin-bottom: 24px;
     }
     @media (max-width: 980px){ .analytics-row{ grid-template-columns: 1fr; } }
@@ -306,7 +252,7 @@ $currentUser = $_SESSION['user'];
       display: flex; align-items: center; justify-content: space-between;
       gap: 10px; padding: 9px 12px; border-radius: var(--radius);
       background: var(--surface2); border: 1px solid var(--border);
-      font-size: 12px; cursor: pointer; transition: background-color .15s;
+      font-size: 12px; cursor: pointer; transition: background .15s;
     }
     .recent-item:hover { background: #ffffff60; }
     .recent-item .ri-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -703,7 +649,6 @@ $currentUser = $_SESSION['user'];
     }
     .inline-form { display: flex; gap: 8px; flex-wrap: wrap; }
     .inline-form input, .inline-form select { flex: 1; min-width: 120px; }
-
     .checkbox-row { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; }
 
     /* Ticket detail popup */
@@ -738,48 +683,16 @@ $currentUser = $_SESSION['user'];
       }
 
       @media (max-width: 860px){
-    .sidebar {
-    position: fixed;
-    top: 82px;
-    left: 0;
-    height: 100vh;
-    background:var(--bg);
-    z-index: 200;
-    width: 180px;             /* same width as before */
-    transform: translateX(0);
-    transition: transform 0.25s ease;
-  }
-
-  .sidebar.collapsed {
-    width: 180px;             /* keep width — don't shrink it */
-    transform: translateX(-100%);  /* slide off-screen instead */
-  }
-  
-  .sidebar-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.37);
-    z-index: 199;
-  }
-
-  .sidebar-backdrop.active {
-    display: flex;
-  }
-
-        .app-shell { display: flex; }
+        .sidebar { display: none; }
+        .app-shell { display: block; }
       }
 
   </style>
 </head>
-<body>
+<body><?php $currentRole === 'admin';?>
 
 <header>
   <div class="logo">
-    <button id="sidebarToggle" class="sidebar-toggle collapsed" title="Toggle sidebar">
-  <span class="toggle-icon">&#8249;<!--<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <path d="M4 6h16M4 12h16M4 18h16"/></svg>--></span>
-</button>
     <div class="logo-icon">TRAC</div>
     <div>
       <div class="logo-text">TRAC::DESK</div>
@@ -793,6 +706,9 @@ $currentUser = $_SESSION['user'];
     <div class="stat-chip">Total&nbsp;<span id="count-total">0</span></div>
 </div>-->
 <div class="header-meta">
+   <div class="stat-chip">User: <span id="current-user-chip"><?php echo htmlspecialchars($currentUser, ENT_QUOTES, 'UTF-8'); ?></span>&nbsp;&middot;&nbsp;<span id="current-role-chip"><?php echo htmlspecialchars($currentRole, ENT_QUOTES, 'UTF-8'); ?></span></div>
+  <a href="#" onclick="downloadCSV(); return false;" class="btn-la">Download CSV</a>
+  <a href="#" onclick="printFiltered(); return false;" class="btn-la">Print</a>
   <a href="logout.php" class="btn-la">Logout</a>
   
   </div>
@@ -800,8 +716,7 @@ $currentUser = $_SESSION['user'];
 
 <div class="app-shell">
   <!--Sidebar-->
-  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-  <nav class="sidebar collapsed" id="page-sidebar">
+  <nav class="sidebar">
     <div class="nav-section-label">Overview</div>
     <a class="nav-item active" data-page="page-dashboard" onclick="switchPage('page-dashboard', this)">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
@@ -821,25 +736,24 @@ $currentUser = $_SESSION['user'];
     <?php endif; ?>
 
     <div class="nav-section-label">Settings</div>
-   <!-- <?php if ($currentRole === 'admin'): ?>-->
+    <?php if ($currentRole === 'admin'): ?>
     <a class="nav-item" data-page="page-admin" onclick="switchPage('page-admin', this)">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Admin Panel
     </a>
-    <!--<?php else: ?>-->
+    <?php else: ?>
     <a class="nav-item" data-page="page-account" onclick="switchPage('page-account', this)">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       My Account
     </a>
-    <!--<?php endif; ?>-->
-   <div class="stat-chip1">Username: <span id="current-user-chip"><?php echo htmlspecialchars($currentUser, ENT_QUOTES, 'UTF-8'); ?></span><br><br>Role: <span><span id="current-role-chip"><?php echo htmlspecialchars($currentRole, ENT_QUOTES, 'UTF-8'); ?></span></div>
+    <?php endif; ?>
   </nav>
 
   <main>
 
     <section class="page active" id="page-dashboard">
       <div class="page-title">Dashboard</div>
-      <div class="page-subtitle">Overview of ticket activity<!--<?php echo $currentRole==='admin' ? '--> across the organisation<!--' : ' for your account'; ?>-->.</div>
+      <div class="page-subtitle">Overview of ticket activity<?php echo $currentRole==='admin' ? ' across the organisation' : ' for your account'; ?>.</div>
 
       <div class="analytics-grid">
         <div class="analytics-card">
@@ -858,7 +772,7 @@ $currentUser = $_SESSION['user'];
           <div class="ac-sub">Being worked on</div>
         </div>
         <div class="analytics-card">
-          <div class="ac-label">Resolved</div>
+          <div class="ac-label">Resolved &amp; Closed</div>
           <div class="ac-value" id="an-resolved">0</div>
           <div class="ac-sub">Closed / Resolved</div>
         </div>
@@ -896,27 +810,19 @@ $currentUser = $_SESSION['user'];
     <section class="page" id="page-mytickets">
       <div class="page-title">My Tickets</div>
       <div class="page-subtitle">Tickets you created or are assigned to resolve.</div>
-      <div class="header-beta">
-        <a href="#" onclick="downloadCSV(); return false;" class="btn-la">Download CSV</a>
-        <a href="#" onclick="printFiltered(); return false;" class="btn-la">Print</a>
-    </div>
       <?php $pageId = 'page-mytickets'; include __DIR__ . '/partials/ticket_table.php'; unset($pageId); ?>
     </section>
 
-   <!-- <?php if ($currentRole === 'admin'): ?>
+    <?php if ($currentRole === 'admin'): ?>
     <!--ALL TICKETS PAGE (admin only)-->
     <section class="page" id="page-alltickets">
       <div class="page-title">All Tickets</div>
       <div class="page-subtitle">Every ticket across the organisation.</div>
-      <div class="header-beta">
-        <a href="#" onclick="downloadCSV(); return false;" class="btn-la">Download CSV</a>
-        <a href="#" onclick="printFiltered(); return false;" class="btn-la">Print</a>
-    </div>
       <?php $pageId = 'page-alltickets'; include __DIR__ . '/partials/ticket_table.php'; unset($pageId); ?>
     </section>
     <?php endif; ?>
 
-   <!-- <?php if ($currentRole !== 'admin'): ?>
+    <?php if ($currentRole !== 'admin'): ?>
     <!-- MY ACCOUNT PAGE (non-admin) -->
     <section class="page" id="page-account">
       <div class="page-title">My Account</div>
@@ -943,7 +849,7 @@ $currentUser = $_SESSION['user'];
     </section>
     <?php endif; ?>
 
-    <!--<?php if ($currentRole === 'admin'): ?>
+    <?php if ($currentRole === 'admin'): ?>
     <!--ADMIN PAGE-->
     <section class="page" id="page-admin">
       <div class="page-title">Admin Panel</div>
@@ -981,22 +887,7 @@ $currentUser = $_SESSION['user'];
           </div>
           <button class="btn-submit" onclick="addUser()">Add User</button>
         </div>
-        <div class="panel">
-          <h3>Import Records as CSV</h3>
-          <div class="panel-msg" id="importStatus"></div>
-          <div class="inline-form">
-            <input type="file" id="importCsv" accept=".csv,text/csv"
-             style="padding:10px; 
-             border-radius:8px; 
-             border:1px solid #333; 
-             box-shadow: 0 3px 24px #04251e; 
-             background: rgba(255, 255, 255, 0.26); 
-             color: #0f0303; margin-bottom: 8px;"/>
-          </div>
-            <button type="button" class="btn-submit" onclick="importTickets()">Import file</button>
-           <span id="importStatus" class="small"></span>
-          </div>
-        </div>
+      </div>
 
       <div class="panel" style="margin-bottom:16px;">
         <h3>Manage Users</h3>
@@ -1009,7 +900,7 @@ $currentUser = $_SESSION['user'];
             <tbody id="usersTableBody"></tbody>
           </table>
         </div>
-       </div>
+      </div>
 
       <div class="analytics-row">
         <div class="panel">
@@ -1198,7 +1089,7 @@ $currentUser = $_SESSION['user'];
 
   //Helpers
   function statusClass(s){
-    return 'badge badge-'+({Open:'open','In Progress':'progress',Resolved:'resolved',Closed:'resolved',Pending:'pending'}[s]||'resolved');
+    return 'badge badge-'+({Open:'open','In Progress':'progress',Resolved:'resolved',Closed:'closed',Pending:'pending'}[s]||'closed');
   }
   function priorityClass(p){
     return 'badge badge-'+({Low:'closed',Medium:'pending',High:'progress',Critical:'open'}[p]||'pending');
@@ -1216,7 +1107,7 @@ $currentUser = $_SESSION['user'];
     return prefix+'-'+String(seq+1).padStart(3,'0');
   }
 //Makes a GET request to the API endpoint to retrieve the list of tickets. If the response status is 401 (Unauthorized), it redirects the user to the login page. If the response is not successful, it throws an error. If successful, it parses the JSON response and updates the tickets array, then calls the render function to update the UI.
-  /*async function loadTickets(){
+  async function loadTickets(){
     try {
       const res = await fetch(API, {
         method:'GET', 
@@ -1264,7 +1155,7 @@ $currentUser = $_SESSION['user'];
     if(!res.ok) throw new Error('Failed to delete ticket' + (res.statusText ? `: ${res.statusText}` : '') );
     return await res.json();
   }
-*/
+
   // ── Scope helper: which tickets are visible on the active page ──
   function getScoped(){
     const activePage = document.querySelector('.page.active');
@@ -1762,13 +1653,13 @@ if(modalMode==='new'){
   }
 
   function renderAnalytics(){
-    const scope = CURRENT_ROLE === 'admin' ? tickets : tickets.filter(t=>t.created_by === CURRENT_USER || t.resolver===CURRENT_USER);
+    const scope = CURRENT_ROLE === 'admin' ? tickets : tickets.filter(t=>t.created_by === CURRENT_USER || t.resolver === CURRENT_USER);
 
     document.getElementById('an-total').textContent = scope.length;
     document.getElementById('an-total-sub').textContent = CURRENT_ROLE === 'admin' ? 'Organisation-wide' : 'Your tickets';
     document.getElementById('an-open').textContent = scope.filter(t=>t.status==='Open').length;
     document.getElementById('an-progress').textContent = scope.filter(t=>t.status==='In Progress').length;
-    document.getElementById('an-resolved').textContent = scope.filter(t=>t.status==='Resolved & Closed').length;
+    document.getElementById('an-resolved').textContent = scope.filter(t=>t.status==='Resolved &amp; Closed').length;
 
     const weekAgo = Date.now() - 7*864e5;
     document.getElementById('an-recent').textContent = scope.filter(t=>new Date(t.date).getTime() >= weekAgo).length;
@@ -1996,249 +1887,21 @@ if(modalMode==='new'){
     });
   }
 
-  function parseCsvLine(line){
-  // Minimal CSV parser: supports quotes and commas inside quotes.
-  // Returns array of cell strings.
-  const out = [];
-  let i = 0;
-  let cell = '';
-  let inQuotes = false;
-
-  while (i < line.length) {
-    const ch = line[i];
-    if (inQuotes) {
-      if (ch === '"') {
-        if (i + 1 < line.length && line[i + 1] === '"') {
-          cell += '"';
-          i += 2;
-          continue;
-        } else {
-          inQuotes = false;
-          i++;
-          continue;
-        }
-      } else {
-        cell += ch;
-        i++;
-        continue;
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true;
-        i++;
-        continue;
-      }
-      if (ch === ',') {
-        out.push(cell);
-        cell = '';
-        i++;
-        continue;
-      }
-      cell += ch;
-      i++;
-    }
-  }
-  out.push(cell);
-  return out;
-}
-
-function normalizeHeader(s){
-  return String(s || '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g,'_')
-    .replace(/-/g,'_');
-}
-
-function csvToObjects(text){
-  const rows = [];
-  let cur = '';
-  let inQuotes = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (ch === '"') {
-      // Escaped quote inside quoted field: ""
-      if (inQuotes && i + 1 < text.length && text[i + 1] === '"') {
-        cur += '"';
-        i++;
-        continue;
-      }
-      inQuotes = !inQuotes;
-      cur += ch;
-      continue;
-    }
-
-    const isLineBreak = (ch === '\n') || (ch === '\r');
-    if (!inQuotes && isLineBreak) {
-      // consume CRLF
-      if (ch === '\r' && i + 1 < text.length && text[i + 1] === '\n') i++;
-      const line = cur;
-      cur = '';
-      // skip empty line
-      if (line.trim() === '') continue;
-      rows.push(parseCsvLine(line));
-      continue;
-    }
-
-    cur += ch;
-  }
-
-  if (cur.trim() !== '') {
-    rows.push(parseCsvLine(cur));
-  }
-
-  if (!rows.length) return [];
-
-  const expected = [
-    'date',
-    'description',
-    'solution',
-    'priority',
-    'company',
-    'department',
-    'via',
-    'resolver',
-    'status',
-    'resolve_date'
-  ];
-
-  const headerRow = rows[0];
-  const hasHeader = normalizeHeader(headerRow[0]) !== '' && normalizeHeader(headerRow[0]) === 'date';
-
-  const headerMap = {};
-  let startIndex = 1;
-  if (hasHeader) {
-    headerRow.forEach((cell, idx) => {
-      const k = normalizeHeader(cell);
-      if (k) headerMap[k] = idx;
-    });
-  } else {
-    // No header: positional mapping based on export order.
-    startIndex = 0;
-  }
-
-  const out = [];
-  for (let r = startIndex; r < rows.length; r++) {
-    const row = rows[r];
-    if (!row || row.length === 0) continue;
-
-    const get = (key, pos) => {
-      const nk = normalizeHeader(key);
-      if (hasHeader && headerMap.hasOwnProperty(nk)) {
-        const v = row[headerMap[nk]];
-        return (v === undefined || v === null) ? '' : String(v).trim();
-      }
-      const v = row[pos];
-      return (v === undefined || v === null) ? '' : String(v).trim();
-    };
-
-    const obj = {
-      date: get('date', 0),
-      description: get('description', 1),
-      solution: get('solution', 2),
-      priority: get('priority', 3),
-      company: get('company', 4),
-      department: get('department', 5),
-      via: get('via', 6),
-      resolver: get('resolver', 7),
-      status: get('status', 8),
-      resolve_date: get('resolve_date', 9),
-    };
-
-    // Skip completely empty rows
-    const nonEmpty = Object.values(obj).some(v => String(v || '').trim() !== '');
-    if (!nonEmpty) continue;
-    out.push(obj);
-  }
-  return out;
-}
-  
-  async function importTickets(){
-  const fileInput = document.getElementById('importCsv');
-  const out = document.getElementById('importStatus');
-  out.textContent = '';
-
-  const file = fileInput.files && fileInput.files[0];
-  if (!file) {
-    out.textContent = 'Choose a CSV file.';
-    return;
-  }
-  if (file.size > 20 * 2048 * 2048) {
-    out.textContent = 'File too large (max 20MB).';
-    return;
-  }
-
-  out.textContent = 'Reading CSV...';
-  try {
-    const text = await file.text();
-    const rows = csvToObjects(text);
-    if (!rows.length) {
-      out.textContent = 'No rows found in CSV.';
-      return;
-    }
-
-    out.textContent = 'Importing (' + rows.length + ' rows)...';
-
-    const res = await fetch ('api/tickets-import.php',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({rows})
-    });
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      out.textContent = data.error || ('Import failed: HTTP ' + res.status);
-      return;
-    }
-
-    const c = data.counts || {};
-    out.innerHTML = (data.message || 'Import finished.') +
-      '\n\nTotal: ' + (c.rows_total ?? 0) +
-      '\nInserted: ' + (c.rows_inserted ?? 0) +
-      '\nSkipped: ' + (c.rows_skipped ?? 0) +
-      (Array.isArray(data.warnings) && data.warnings.length ? ('\n\nWarnings: ' + data.warnings.join(' | ')) : '');
-  } catch (e) {
-    out.textContent = 'Import request failed.';
-  }
-}
-(function () {
-  const sidebar = document.querySelector('.sidebar');
-  const btn = document.getElementById('sidebarToggle');
-  const backdrop = document.getElementById('sidebarBackdrop');
-
-
-  if (!sidebar || !btn) return;
-
-  function toggleSidebar() {
-    const isCollapsed = sidebar.classList.toggle('collapsed');
-    btn.classList.toggle('collapsed', isCollapsed);
-    btn.title = isCollapsed ? 'Show sidebar' : 'Hide sidebar';
-    if (backdrop) backdrop.classList.toggle('active', !isCollapsed);
-  }
-
-  btn.addEventListener('click', toggleSidebar);
-
- if (backdrop){
-  backdrop.addEventListener('click', () => {
-      sidebar.classList.add('collapsed');
-      btn.classList.add('collapsed');
-      backdrop.classList.remove('active');
-    });
-  }
-})();
-
-  
-
     const evtSource = new EventSource('sse.php');
     evtSource.onmessage = (e) => {
     loadTickets();
-};
+    };
 
     loadMeta();
     render();
     loadTickets();
 
+  // Restore last viewed page
+  const lastPage = localStorage.getItem('lastPage');
+  if(lastPage && document.getElementById(lastPage)){
+    const navElement = document.querySelector(`[data-page="${lastPage}"]`);
+    switchPage(lastPage, navElement);
+  }
 </script>
 </body>
 </html>
