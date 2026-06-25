@@ -821,17 +821,17 @@ $currentUser = $_SESSION['user'];
     <?php endif; ?>
 
     <div class="nav-section-label">Settings</div>
-    <?php if ($currentRole === 'admin'): ?>
+   <!-- <?php if ($currentRole === 'admin'): ?>-->
     <a class="nav-item" data-page="page-admin" onclick="switchPage('page-admin', this)">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Admin Panel
     </a>
-    <?php else: ?>
+    <!--<?php else: ?>-->
     <a class="nav-item" data-page="page-account" onclick="switchPage('page-account', this)">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       My Account
     </a>
-    <?php endif; ?>
+    <!--<?php endif; ?>-->
    <div class="stat-chip1">Username: <span id="current-user-chip"><?php echo htmlspecialchars($currentUser, ENT_QUOTES, 'UTF-8'); ?></span><br><br>Role: <span><span id="current-role-chip"><?php echo htmlspecialchars($currentRole, ENT_QUOTES, 'UTF-8'); ?></span></div>
   </nav>
 
@@ -839,7 +839,7 @@ $currentUser = $_SESSION['user'];
 
     <section class="page active" id="page-dashboard">
       <div class="page-title">Dashboard</div>
-      <div class="page-subtitle">Overview of ticket activity<?php echo $currentRole==='admin' ? ' across the organisation' : ' for your account'; ?>.</div>
+      <div class="page-subtitle">Overview of ticket activity<!--<?php echo $currentRole==='admin' ? '--> across the organisation<!--' : ' for your account'; ?>-->.</div>
 
       <div class="analytics-grid">
         <div class="analytics-card">
@@ -903,7 +903,7 @@ $currentUser = $_SESSION['user'];
       <?php $pageId = 'page-mytickets'; include __DIR__ . '/partials/ticket_table.php'; unset($pageId); ?>
     </section>
 
-    <?php if ($currentRole === 'admin'): ?>
+   <!-- <?php if ($currentRole === 'admin'): ?>
     <!--ALL TICKETS PAGE (admin only)-->
     <section class="page" id="page-alltickets">
       <div class="page-title">All Tickets</div>
@@ -916,7 +916,7 @@ $currentUser = $_SESSION['user'];
     </section>
     <?php endif; ?>
 
-    <?php if ($currentRole !== 'admin'): ?>
+   <!-- <?php if ($currentRole !== 'admin'): ?>
     <!-- MY ACCOUNT PAGE (non-admin) -->
     <section class="page" id="page-account">
       <div class="page-title">My Account</div>
@@ -943,7 +943,7 @@ $currentUser = $_SESSION['user'];
     </section>
     <?php endif; ?>
 
-    <?php if ($currentRole === 'admin'): ?>
+    <!--<?php if ($currentRole === 'admin'): ?>
     <!--ADMIN PAGE-->
     <section class="page" id="page-admin">
       <div class="page-title">Admin Panel</div>
@@ -1216,7 +1216,7 @@ $currentUser = $_SESSION['user'];
     return prefix+'-'+String(seq+1).padStart(3,'0');
   }
 //Makes a GET request to the API endpoint to retrieve the list of tickets. If the response status is 401 (Unauthorized), it redirects the user to the login page. If the response is not successful, it throws an error. If successful, it parses the JSON response and updates the tickets array, then calls the render function to update the UI.
-  async function loadTickets(){
+  /*async function loadTickets(){
     try {
       const res = await fetch(API, {
         method:'GET', 
@@ -1264,7 +1264,7 @@ $currentUser = $_SESSION['user'];
     if(!res.ok) throw new Error('Failed to delete ticket' + (res.statusText ? `: ${res.statusText}` : '') );
     return await res.json();
   }
-
+*/
   // ── Scope helper: which tickets are visible on the active page ──
   function getScoped(){
     const activePage = document.querySelector('.page.active');
