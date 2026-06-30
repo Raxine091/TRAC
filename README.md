@@ -13,6 +13,11 @@ Trac was first introduced as a system that is intended to replace the traditiona
 - Printing records of filtered data as filtered
 - Access control - only users authorized by the admin to use the system are given accounts and credentials which can be revoked by the admin
 
+### Languages Used
+<div align="left">
+  <img src="https://skillicons.dev/icons?i=html,css,javascript,php,sql&theme=dark&perline=12" />
+</div>
+
 ### Usage steps
 1. An authorized users with a created user account logs in to the system
 2. They land on to a dashboard which gives them an overview of the tickets that were assigned to them alongside completion rates.
