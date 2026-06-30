@@ -38,11 +38,7 @@ Due to the progress and the various restrictions enforced on to the final produc
 I am not actively looking for collaborators at the moment but if interested in contributing, you may contact me.
 
 <!--[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/arnold-sam-82a63230a)-->
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
-  <a href="https://linkedin.com/in/arnold-sam-82a63230a" target="_blank" title="LinkedIn">
-    <i class="fab fa-linkedin"></i>
-  </a><a href="https://linkedin.com/in/arnold-sam-82a63230a" src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg"></a>  <a href="mailto: aether.arnold@gmail.com"><img src="https://cdn.simpleicons.org/gmail" width="30"/></a> <a href="https://wa.link/dk900x"><img src="https://cdn.simpleicons.org/whatsapp/green" width="30"/></a> 
+<a href="https://linkedin.com/in/arnold-sam-82a63230a" src="https://unpkg.com/simple-icons@13.21.0/icons/linkedin.svg"></a>  <a href="mailto: aether.arnold@gmail.com"><img src="https://cdn.simpleicons.org/gmail" width="30"/></a> <a href="https://wa.link/dk900x"><img src="https://cdn.simpleicons.org/whatsapp/green" width="30"/></a> 
 <a href="https://signal.me/#eu/XXwjIQH0TwxGRHpmlTZn5jvZjBZwXzr-X79q7A0S9FrQ2Ceq_NVPWoJbS74zPaJC">
   <img src="https://cdn.simpleicons.org/signal/blue" width="30"/>
 </a>
